@@ -25,6 +25,7 @@
    * 2. Animation happens on the panel.
    */
   .euiPopover__panel {
+    width: 100%;
     position: absolute;
     z-index: $euiZContentMenu;
     min-width: $euiButtonMinWidth; /* 1 */
