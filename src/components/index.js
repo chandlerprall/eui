@@ -130,6 +130,7 @@ export {
   EuiRange,
   EuiSelect,
   EuiSuperSelect,
+  EuiSuperSelectControl,
   EuiSwitch,
   EuiTextArea,
   EuiValidatableControl,
