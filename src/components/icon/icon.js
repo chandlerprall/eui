@@ -35,6 +35,7 @@ import createPopulationJob from './assets/ml_create_population_job.svg';
 import createSingleMetricJob from './assets/ml_create_single_metric_job.svg';
 import cross from './assets/cross.svg';
 import dashboardApp from './assets/app_dashboard.svg';
+import database from './assets/database.svg';
 import dataVisualizer from './assets/ml_data_visualizer.svg';
 import devToolsApp from './assets/app_devtools.svg';
 import discoverApp from './assets/app_discover.svg';
@@ -64,8 +65,10 @@ import eyeClosed from './assets/eye_closed.svg';
 import faceHappy from './assets/face_happy.svg';
 import faceNeutral from './assets/faceNeutral.svg';
 import faceSad from './assets/face_sad.svg';
+import filter from './assets/filter.svg';
 import fullScreen from './assets/full_screen.svg';
 import gear from './assets/gear.svg';
+import globe from './assets/globe.svg';
 import grab from './assets/grab.svg';
 import graphApp from './assets/app_graph.svg';
 import grid from './assets/grid.svg';
@@ -140,6 +143,7 @@ import popout from './assets/popout.svg';
 import questionInCircle from './assets/question_in_circle.svg';
 import refresh from './assets/refresh.svg';
 import reportingApp from './assets/app_reporting.svg';
+import save from './assets/save.svg';
 import savedObjectsApp from './assets/app_saved_objects.svg';
 import scale from './assets/scale.svg';
 import search from './assets/search.svg';
@@ -170,6 +174,24 @@ import vector from './assets/vector.svg';
 import visualizeApp from './assets/app_visualize.svg';
 import watchesApp from './assets/app_watches.svg';
 import wrench from './assets/wrench.svg';
+import visArea from './assets/vis_area.svg';
+import visBarHorizontal from './assets/vis_bar_horizontal.svg';
+import visBarVertical from './assets/vis_bar_vertical.svg';
+import visControls from './assets/vis_controls.svg';
+import visGauge from './assets/vis_gauge.svg';
+import visGoal from './assets/vis_goal.svg';
+import visHeatmap from './assets/vis_heatmap.svg';
+import visLine from './assets/vis_line.svg';
+import visMapCoordinate from './assets/vis_map_coordinate.svg';
+import visMapRegion from './assets/vis_map_region.svg';
+import visMetric from './assets/vis_metric.svg';
+import visPie from './assets/vis_pie.svg';
+import visTable from './assets/vis_table.svg';
+import visTagCloud from './assets/vis_tag_cloud.svg';
+import visText from './assets/vis_text.svg';
+import visTimelion from './assets/vis_timelion.svg';
+import visVega from './assets/vis_vega.svg';
+import visVisualBuilder from './assets/vis_visual_builder.svg';
 
 
 const typeToIconMap = {
@@ -206,6 +228,7 @@ const typeToIconMap = {
   createSingleMetricJob,
   cross,
   dashboardApp,
+  database,
   dataVisualizer,
   devToolsApp,
   discoverApp,
@@ -235,8 +258,10 @@ const typeToIconMap = {
   faceHappy,
   faceNeutral,
   faceSad,
+  filter,
   fullScreen,
   gear,
+  globe,
   grab,
   graphApp,
   grid,
@@ -311,6 +336,7 @@ const typeToIconMap = {
   questionInCircle,
   refresh,
   reportingApp,
+  save,
   savedObjectsApp,
   scale,
   search,
@@ -341,6 +367,24 @@ const typeToIconMap = {
   visualizeApp,
   watchesApp,
   wrench,
+  visArea,
+  visBarHorizontal,
+  visBarVertical,
+  visControls,
+  visGauge,
+  visGoal,
+  visHeatmap,
+  visLine,
+  visMapCoordinate,
+  visMapRegion,
+  visMetric,
+  visPie,
+  visTable,
+  visTagCloud,
+  visText,
+  visTimelion,
+  visVega,
+  visVisualBuilder,
 };
 
 export const TYPES = Object.keys(typeToIconMap);

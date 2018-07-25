@@ -47,7 +47,7 @@
  *  3. Be sure to hide/show the element initially
  */
 [class*="eui-hideFor"] {
-  display: initial !important; /* 3 */
+  display: inline !important; /* 3 */
 }
 [class*="eui-showFor"] {
  display: none !important; /* 3 */
@@ -58,6 +58,17 @@
     @include euiBreakpoint($size) { display: none !important; }
   }
   .eui-showFor--#{$size} {
-    @include  euiBreakpoint($size) { display: initial !important; }
+    @include  euiBreakpoint($size) { display: inline !important; }
   }
+}
+
+/**
+  * IE doesn't properly wrap groups if it is within a flex-item of a flex-group.
+  * Adding the following styles to the flex-item that contains the wrapping group, will fix IE.
+  * https://github.com/philipwalton/flexbugs/issues/104
+  */
+.euiIEFlexWrapFix {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
 }

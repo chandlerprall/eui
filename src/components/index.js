@@ -14,6 +14,7 @@ export {
 export {
   EuiBadge,
   EuiBetaBadge,
+  EuiNotificationBadge,
 } from './badge';
 
 export {
@@ -66,6 +67,7 @@ export {
 
 export {
   EuiDatePicker,
+  EuiDatePickerRange,
 } from './date_picker';
 
 export {
@@ -143,7 +145,6 @@ export {
   EuiHeaderLink,
   EuiHeaderLinks,
   EuiHeaderLogo,
-  EuiHeaderNotification,
   EuiHeaderSection,
   EuiHeaderSectionItem,
   EuiHeaderSectionItemButton,
@@ -198,6 +199,10 @@ export {
 } from './modal';
 
 export {
+  EuiMutationObserver,
+} from './mutation_observer';
+
+export {
   EuiOutsideClickDetector,
 } from './outside_click_detector';
 
@@ -229,6 +234,7 @@ export {
 export {
   EuiPopover,
   EuiPopoverTitle,
+  EuiWrappingPopover,
 } from './popover';
 
 export {
@@ -314,4 +320,3 @@ export {
   EuiHideFor,
   EuiShowFor,
 } from './responsive';
-

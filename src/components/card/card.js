@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { getSecureRelForTarget } from '../../services';
 
 import { EuiText } from '../text';
 import { EuiTitle } from '../title';
@@ -39,11 +40,14 @@ export const EuiCard = ({
   className,
   description,
   title,
+  titleElement,
   icon,
   image,
   footer,
   onClick,
   href,
+  rel,
+  target,
   textAlign,
   isClickable,
   betaBadgeLabel,
@@ -63,6 +67,11 @@ export const EuiCard = ({
     },
     className,
   );
+
+  let secureRel;
+  if (href) {
+    secureRel = getSecureRelForTarget(target, rel);
+  }
 
   let imageNode;
   if (image && layout === 'vertical') {
@@ -84,6 +93,11 @@ export const EuiCard = ({
     OuterElement = 'a';
   } else if (onClick) {
     OuterElement = 'button';
+  }
+
+  let TitleElement = titleElement;
+  if (OuterElement === 'button') {
+    TitleElement = 'span';
   }
 
   let optionalCardTop;
@@ -115,6 +129,8 @@ export const EuiCard = ({
       onClick={onClick}
       className={classes}
       href={href}
+      target={target}
+      rel={secureRel}
       {...rest}
     >
       {optionalBetaBadge}
@@ -123,7 +139,7 @@ export const EuiCard = ({
 
       <span className="euiCard__content">
         <EuiTitle className="euiCard__title">
-          <span>{title}</span>
+          <TitleElement>{title}</TitleElement>
         </EuiTitle>
 
         <EuiText size="s" className="euiCard__description">
@@ -143,6 +159,11 @@ export const EuiCard = ({
 EuiCard.propTypes = {
   className: PropTypes.string,
   title: PropTypes.node.isRequired,
+  /**
+   * Determines the title's heading element. Will force to 'span' if
+   * the card is a button.
+   */
+  titleElement: PropTypes.oneOf(['h2', 'h3', 'h4', 'h5', 'h6', 'span']),
   description: PropTypes.node.isRequired,
 
   /**
@@ -165,6 +186,8 @@ EuiCard.propTypes = {
    */
   onClick: PropTypes.func,
   href: PropTypes.string,
+  target: PropTypes.string,
+  rel: PropTypes.string,
   textAlign: PropTypes.oneOf(ALIGNMENTS),
 
   /**
@@ -191,4 +214,5 @@ EuiCard.propTypes = {
 EuiCard.defaultProps = {
   textAlign: 'center',
   layout: 'vertical',
+  titleElement: 'span',
 };

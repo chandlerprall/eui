@@ -13,6 +13,10 @@ import {
   EuiFlexItem,
 } from '../flex';
 
+import {
+  EuiMutationObserver,
+} from '../mutation_observer';
+
 const paddingSizeToClassNameMap = {
   none: null,
   xs: 'euiAccordion__padding--xs',
@@ -37,8 +41,8 @@ export class EuiAccordion extends Component {
 
   setChildContentHeight = () => {
     requestAnimationFrame(() => {
-      const height = this.state.isOpen ? this.childContent.clientHeight : 0;
-      this.childWrapper.setAttribute('style', `height: ${height}px`);
+      const height = this.childContent && this.state.isOpen ? this.childContent.clientHeight : 0;
+      this.childWrapper && this.childWrapper.setAttribute('style', `height: ${height}px`);
     });
   }
 
@@ -54,6 +58,10 @@ export class EuiAccordion extends Component {
     this.setState(prevState => ({
       isOpen: !prevState.isOpen
     }));
+  }
+
+  setChildContentRef = (node) => {
+    this.childContent = node;
   }
 
   render() {
@@ -140,11 +148,16 @@ export class EuiAccordion extends Component {
           ref={node => { this.childWrapper = node; }}
           id={id}
         >
-          <div ref={node => { this.childContent = node; }}>
-            <div className={paddingClass}>
-              {children}
+          <EuiMutationObserver
+            observerOptions={{ childList: true, subtree: true }}
+            onMutation={this.setChildContentHeight}
+          >
+            <div ref={this.setChildContentRef}>
+              <div className={paddingClass}>
+                {children}
+              </div>
             </div>
-          </div>
+          </EuiMutationObserver>
         </div>
       </div>
     );

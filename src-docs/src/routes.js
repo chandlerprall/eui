@@ -153,6 +153,9 @@ import { LoadingExample }
 import { ModalExample }
   from './views/modal/modal_example';
 
+import { MutationObserverExample }
+  from './views/mutation_observer/mutation_observer_example';
+
 import { OutsideClickDetectorExample }
   from './views/outside_click_detector/outside_click_detector_example';
 
@@ -209,6 +212,24 @@ import { ToolTipExample }
 
 import { ToggleExample }
   from './views/toggle/toggle_example';
+
+import { XYChartExample }
+  from './views/xy_chart/xy_chart_example';
+
+import { XYChartAxisExample }
+  from './views/xy_chart_axis/xy_axis_example';
+
+import { XYChartBarExample }
+  from './views/xy_chart_bar/bar_example';
+
+import { XYChartHistogramExample }
+  from './views/xy_chart_histogram/histogram_example';
+
+import { XYChartAreaExample }
+  from './views/xy_chart_area/area_example';
+
+import { XYChartLineExample }
+  from './views/xy_chart_line/line_example';
 
 import { Changelog }
   from './views/package/changelog';
@@ -344,7 +365,19 @@ const navigation = [{
     FilterGroupExample,
     SearchBarExample,
   ].map(example => createExample(example)),
-}, {
+},
+{
+  name: 'XY Charts (Beta)',
+  items: [
+    XYChartExample,
+    XYChartAxisExample,
+    XYChartLineExample,
+    XYChartAreaExample,
+    XYChartBarExample,
+    XYChartHistogramExample,
+  ].map(example => createExample(example)),
+},
+{
   name: 'Utilities',
   items: [
     AccessibilityExample,
@@ -357,6 +390,7 @@ const navigation = [{
     PortalExample,
     ToggleExample,
     UtilityClassesExample,
+    MutationObserverExample,
   ].map(example => createExample(example)),
 }, {
   name: 'Package',

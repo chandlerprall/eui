@@ -10,6 +10,8 @@ import {
   EuiCode,
   EuiLink,
   EuiDatePicker,
+  EuiDatePickerRange,
+  EuiCallOut,
 } from '../../../../src/components';
 
 import DatePicker from './date_picker';
@@ -55,6 +57,10 @@ const customInputHtml = renderToHtml(CustomInput);
 import Utc from './utc';
 const utcSource = require('!!raw-loader!./utc');
 const utcHtml = renderToHtml(Utc);
+
+import GlobalDatePicker from './global_date_picker';
+const globalDatePickerSource = require('!!raw-loader!./global_date_picker');
+const globalDatePickerHtml = renderToHtml(GlobalDatePicker);
 
 export const DatePickerExample = {
   title: 'DatePicker',
@@ -144,10 +150,14 @@ export const DatePickerExample = {
     text: (
       <p>
         By passing <EuiCode>startDate</EuiCode> and <EuiCode>endDate</EuiCode> props
-        you can provide styling the range in between two dates.
+        you can provide styling the range in between two dates. To further style the
+        group as a single control, use <EuiCode>EuiDatePickerRange</EuiCode> and pass
+        the date picker controls into
+        the <EuiCode>startDateControl</EuiCode> and <EuiCode>endDateControl</EuiCode> props.
       </p>
     ),
     demo: <Range />,
+    props: { EuiDatePickerRange },
   }, {
     title: 'Only allow specific dates and times',
     source: [{
@@ -255,5 +265,27 @@ export const DatePickerExample = {
       </div>
     ),
     demo: <Classes />,
+  }, {
+    title: 'Global date picker',
+    source: [{
+      type: GuideSectionTypes.JS,
+      code: globalDatePickerSource,
+    }, {
+      type: GuideSectionTypes.HTML,
+      code: globalDatePickerHtml,
+    }],
+    text: (
+      <div>
+        <EuiCallOut color="warning" title="Demo of visual pattern only">
+          <p>
+            This documents a <strong>visual</strong> pattern for the eventual replacement of Kibana&apos;s
+            global date/time picker. It uses all EUI components without any custom styles. However, it
+            currently depends strongly on <EuiLink href="https://reactdatepicker.com/#example-45">react-datepicker&apos;s <code>calendarContainer</code></EuiLink> option
+            which has it&apos;s own problems and limitations (like auto-focus on input stealing focus from inputs inside of popover).
+          </p>
+        </EuiCallOut>
+      </div>
+    ),
+    demo: <GlobalDatePicker />,
   }],
 };

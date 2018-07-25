@@ -1,13 +1,17 @@
 .euiPageBody {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: stretch;
-  min-height: 400px; // Temporary till we have a better doc system.
-}
+  flex: 1 1 0%;
 
-@include euiBreakpoint('xs','s') {
-  .euiPageBody {
-    flex-direction: column;
+  &--restrictWidth-default,
+  &--restrictWidth-custom {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &--restrictWidth-default {
+    max-width: 1000px;
   }
 }
 
