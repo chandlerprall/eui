@@ -236,7 +236,7 @@ export class EuiPopover extends Component {
       align: getPopoverAlignFromAnchorPosition(this.props.anchorPosition),
       anchor: this.button,
       popover: this.panel,
-      offset: 16,
+      offset: this.props.hasArrow ? 16 : 8,
       arrowConfig: {
         arrowWidth: 24,
         arrowBuffer: 10,
@@ -254,7 +254,7 @@ export class EuiPopover extends Component {
       zIndex,
     };
 
-    const arrowStyles = arrow;
+    const arrowStyles = this.props.hasArrow ? arrow : null;
     const arrowPosition = position;
 
     this.setState({ popoverStyles, arrowStyles, arrowPosition });
@@ -293,6 +293,7 @@ export class EuiPopover extends Component {
       panelClassName,
       panelPaddingSize,
       popoverRef,
+      hasArrow,
       ...rest
     } = this.props;
 
@@ -311,6 +312,7 @@ export class EuiPopover extends Component {
       `euiPopover__panel-${this.state.arrowPosition}`,
       { 'euiPopover__panel-isOpen': this.state.isOpening },
       { 'euiPopover__panel-withTitle': withTitle },
+      { 'euiPopover__panel-noArrow': !hasArrow },
       panelClassName
     );
 
@@ -417,6 +419,7 @@ EuiPopover.propTypes = {
   panelClassName: PropTypes.string,
   panelPaddingSize: PropTypes.oneOf(SIZES),
   popoverRef: PropTypes.func,
+  hasArrow: PropTypes.bool,
   container: PropTypes.oneOfType([
     PropTypes.node,
     PropTypes.instanceOf(HTMLElement)
@@ -428,4 +431,5 @@ EuiPopover.defaultProps = {
   ownFocus: false,
   anchorPosition: 'downCenter',
   panelPaddingSize: 'm',
+  hasArrow: true,
 };
