@@ -1,6 +1,14 @@
 ## [`master`](https://github.com/elastic/eui/tree/master)
 
+**Bug fixes**
+
+- Fixed `EuiXYChart` responsive resize in a flexbox layout ([#1041](https://github.com/elastic/eui/pull/1041))
+
+## [`3.2.1`](https://github.com/elastic/eui/tree/v3.2.1)
+
+- Added `closeButtonAriaLabel` property to `EuiFlyout` ([#1031](https://github.com/elastic/eui/pull/1031))
 - Added types for `EuiToast`, `EuiGlobalToastList`, and `EuiGlobalToastListItem` ([#1045](https://github.com/elastic/eui/pull/1045))
+- Added a handful of third-party logos to `EuiIcon` ([#1033](https://github.com/elastic/eui/pull/1033))
 
 **Bug fixes**
 
@@ -9,8 +17,8 @@
 
 ## [`3.2.0`](https://github.com/elastic/eui/tree/v3.2.0)
 
-**Note: this release creates a minor regression to the display of `EuiFlexItem`s inside a `column` `EuiFlexGroup`. This is fixed in `master`.**
-**Note: this release creates a minor regression to the display of `EuiPopoverTitle`. This is fixed in `master`.**
+**Note: this release creates a minor regression to the display of `EuiFlexItem`s inside a `column` `EuiFlexGroup`. This is fixed in `3.2.1`.**
+**Note: this release creates a minor regression to the display of `EuiPopoverTitle`. This is fixed in `3.2.1`.**
 
 - Added typings for 'EuiBadge' ([#1034](https://github.com/elastic/eui/pull/1034))
 - Added a visual pattern for Kibana's Global Date Picker ([#1026](https://github.com/elastic/eui/pull/1026))
@@ -35,6 +43,14 @@
 **Bug fixes**
 
 - `EuiPopover` re-positions with dynamic content (including CSS height/width transitions) ([#966](https://github.com/elastic/eui/pull/966))
+
+## [`3.0.3`](https://github.com/elastic/eui/tree/v3.0.3)
+
+**Note: this release is a backport bugfix release containing changes original made in `3.2.0`**
+
+**Bug fixes**
+
+- Fixed `EuiContextMenuPanel` calling `ref` after being unmounted ([#1038](https://github.com/elastic/eui/pull/1038))
 
 ## [`3.0.2`](https://github.com/elastic/eui/tree/v3.0.2)
 
