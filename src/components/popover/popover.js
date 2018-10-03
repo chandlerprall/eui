@@ -303,10 +303,6 @@ export class EuiPopover extends Component {
     }
   };
 
-  stopPropagation = e => {
-    e.nativeEvent.stopImmediatePropagation();
-  };
-
   buttonRef = node => (this.button = node);
 
   render() {
@@ -427,16 +423,24 @@ export class EuiPopover extends Component {
     //    recreates its listeners. When the popover closes, the listeners are removed. This
     //    avoids the problem of outside clicks opening and then immediately closing the popover,
     //    etc. It also prevents unnecessary listeners when popovers aren't open.
-    return (
+    const content = (
       <div className={classes} onKeyDown={this.onKeyDown} ref={popoverRef} {...rest}>
         <div className="euiPopover__anchor" ref={this.buttonRef}>
-          <div onClick={this.stopPropagation}>{button instanceof HTMLElement ? null : button}</div>
+          {button instanceof HTMLElement ? null : button}
         </div>
         {isOpen || this.state.isClosing ? (
-          <EuiOutsideClickDetector onOutsideClick={closePopover}>{panel}</EuiOutsideClickDetector>
+          panel
         ) : null}
       </div>
     );
+
+    return isOpen
+      ? (
+        <EuiOutsideClickDetector onOutsideClick={closePopover}>
+          {content}
+        </EuiOutsideClickDetector>
+      )
+      : content;
   }
 }
 

@@ -13,7 +13,8 @@ export default class extends Component {
 
   onButtonClick() {
     this.setState({
-      isPopoverOpen: !this.state.isPopoverOpen,
+      // isPopoverOpen: !this.state.isPopoverOpen,
+      isPopoverOpen: true
     });
   }
 
