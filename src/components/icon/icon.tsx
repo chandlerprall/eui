@@ -599,7 +599,7 @@ export const COLORS: IconColor[] = keysOf(colorToClassMap);
 // We accept arbitrary color strings, which are impossible to type.
 export type IconColor = string | keyof typeof colorToClassMap;
 
-const sizeToClassNameMap = {
+const sizeToClassNameMap: { [key: string]: string | null } = {
   original: null,
   s: 'euiIcon--small',
   m: 'euiIcon--medium',
