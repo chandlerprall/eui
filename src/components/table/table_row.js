@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { EuiDraggable } from '../drag_and_drop';
 
 export const EuiTableRow = ({
   children,
@@ -11,6 +12,8 @@ export const EuiTableRow = ({
   isExpandedRow,
   isExpandable,
   onClick,
+  dragAndDrop,
+  rowIndex,
   ...rest
 }) => {
   const classes = classNames('euiTableRow', className, {
@@ -22,7 +25,18 @@ export const EuiTableRow = ({
     'euiTableRow-isClickable': onClick,
   });
 
-  return (
+  return dragAndDrop ? (
+    <EuiDraggable
+      as="tr"
+      draggableId={`${dragAndDrop.droppableId}-${rowIndex}`}
+      index={rowIndex}
+      className={classes}
+      onClick={onClick}
+      {...rest}
+    >
+      {children}
+    </EuiDraggable>
+  ) : (
     <tr
       className={classes}
       onClick={onClick}
@@ -56,4 +70,7 @@ EuiTableRow.propTypes = {
    * Indicates if the row will be the expanded row
    */
   isExpandedRow: PropTypes.bool,
+  dragAndDrop: PropTypes.shape({
+    droppableId: PropTypes.string.isRequired,
+  }),
 };

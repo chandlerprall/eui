@@ -35,6 +35,7 @@ import { withRequiredProp } from '../../utils/prop_types/with_required_prop';
 import { EuiScreenReaderOnly, EuiKeyboardAccessible } from '../accessibility';
 import { EuiI18n } from '../i18n';
 import makeId from '../form/form_row/make_id';
+import { EuiDroppable } from '../drag_and_drop';
 
 const dataTypesProfiles = {
   auto: {
@@ -164,6 +165,9 @@ const BasicTablePropTypes = {
   rowProps: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
   selection: withRequiredProp(SelectionType, 'itemId', 'row selection uses the itemId prop to identify each row'),
   sorting: SortingType,
+  dragAndDrop: PropTypes.shape({
+    droppableId: PropTypes.string.isRequired,
+  }),
 };
 
 export function getItemId(item, itemId) {
@@ -324,6 +328,7 @@ export class EuiBasicTable extends Component {
     const {
       className,
       loading,
+      dragAndDrop, // eslint-disable-line no-unused-vars
       items, // eslint-disable-line no-unused-vars
       itemId, // eslint-disable-line no-unused-vars
       columns, // eslint-disable-line no-unused-vars
@@ -365,7 +370,7 @@ export class EuiBasicTable extends Component {
 
   renderTable() {
 
-    const { compressed, responsive } = this.props;
+    const { compressed, responsive, dragAndDrop } = this.props;
 
     const mobileHeader = responsive ? (
       <EuiTableHeaderMobile>
@@ -381,10 +386,19 @@ export class EuiBasicTable extends Component {
     const head = this.renderTableHead();
     const body = this.renderTableBody();
     const footer = this.renderTableFooter();
-    return (
-      <div
-        ref={element => { this.tableElement = element; }}
-      >
+
+    return dragAndDrop ? (
+      <EuiDroppable droppableId={dragAndDrop.droppableId}>
+        {mobileHeader}
+        <EuiTable responsive={responsive} compressed={compressed}>
+          {caption}
+          {head}
+          {body}
+          {footer}
+        </EuiTable>
+      </EuiDroppable>
+    ) : (
+      <div>
         {mobileHeader}
         <EuiTable responsive={responsive} compressed={compressed}>
           {caption}
@@ -669,7 +683,7 @@ export class EuiBasicTable extends Component {
   }
 
   renderItemRow(item, rowIndex) {
-    const { columns, selection, isSelectable, hasActions, itemIdToExpandedRowMap = {}, isExpandable } = this.props;
+    const { columns, selection, isSelectable, hasActions, itemIdToExpandedRowMap = {}, isExpandable, dragAndDrop } = this.props;
 
     const cells = [];
 
@@ -730,6 +744,8 @@ export class EuiBasicTable extends Component {
         isSelected={selected}
         hasActions={hasActions == null ? calculatedHasActions : hasActions}
         isExpandable={isExpandable}
+        rowIndex={rowIndex}
+        dragAndDrop={dragAndDrop}
         {...rowProps}
       >
         {cells}

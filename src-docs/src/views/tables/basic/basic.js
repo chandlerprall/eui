@@ -7,6 +7,7 @@ import {
   EuiLink,
   EuiHealth,
 } from '../../../../../src/components';
+import { EuiDragDropContext } from '../../../../../src/components/drag_and_drop';
 
 /*
 Example user object:
@@ -105,11 +106,16 @@ export const Table = () => {
   };
 
   return (
-    <EuiBasicTable
-      items={items}
-      columns={columns}
-      rowProps={getRowProps}
-      cellProps={getCellProps}
-    />
+    <EuiDragDropContext onDragEnd={({ source, destination }) => console.log({ source, destination })}>
+      <EuiBasicTable
+        items={items}
+        columns={columns}
+        rowProps={getRowProps}
+        cellProps={getCellProps}
+        dragAndDrop={{
+          droppableId: 'BASIC_TABLE'
+        }}
+      />
+    </EuiDragDropContext>
   );
 };

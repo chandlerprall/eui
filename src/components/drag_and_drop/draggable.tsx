@@ -5,6 +5,7 @@ import React, {
   ReactElement,
   cloneElement,
   useContext,
+  JSXElementConstructor,
 } from 'react';
 import { Draggable, DraggableProps } from 'react-beautiful-dnd';
 import classNames from 'classnames';
@@ -30,6 +31,7 @@ export interface EuiDraggableProps
   isRemovable?: boolean;
   spacing?: EuiDraggableSpacing;
   style?: CSSProperties;
+  as?: JSXElementConstructor<any>;
 }
 
 export const EuiDraggable: FunctionComponent<EuiDraggableProps> = ({
@@ -42,6 +44,7 @@ export const EuiDraggable: FunctionComponent<EuiDraggableProps> = ({
   className,
   spacing = 'none',
   style,
+  as: As = 'div',
   ...rest
 }) => {
   const { cloneItems } = useContext(EuiDroppableContext);
@@ -72,25 +75,27 @@ export const EuiDraggable: FunctionComponent<EuiDraggableProps> = ({
             : (children as ReactElement); // as specified by `DraggableProps`
         return (
           <Fragment>
-            <div
+            <As
               {...provided.draggableProps}
               {...(!customDragHandle ? provided.dragHandleProps : {})}
               ref={provided.innerRef}
               data-test-subj="draggable"
               className={classes}
               style={{ ...style, ...provided.draggableProps.style }}>
-              {cloneElement(DraggableElement, {
-                className: classNames(
-                  DraggableElement.props.className,
-                  childClasses
-                ),
-              })}
-            </div>
+              {React.Children.map(DraggableElement, child =>
+                cloneElement(child, {
+                  className: classNames(
+                    child.props.className,
+                    childClasses
+                  ),
+                })
+              )}
+            </As>
             {cloneItems &&
               (snapshot.isDragging && (
-                <div className={classNames(classes, 'euiDraggable--clone')}>
+                <As className={classNames(classes, 'euiDraggable--clone')}>
                   {DraggableElement}
-                </div>
+                </As>
               ))}
           </Fragment>
         );
