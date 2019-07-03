@@ -7,7 +7,7 @@
  * 4. Using specificity to override panel shadow
  */
 .euiComboBoxOptionsList {
-  @include euiFormControlSize(auto, $includeAlternates: true); /* 3 */
+  // @include euiFormControlSize(auto, $includeAlternates: true); /* 3 */
   z-index: $euiZComboBox;
   position: absolute; /* 2 */
   top: 0; /* 2 */

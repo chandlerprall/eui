@@ -96,8 +96,24 @@ export class EuiComboBox extends Component {
   }
 
   openList = () => {
+    // compute option list width
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.font = window.getComputedStyle(this.searchInput).font;
+
+    let maxWidth = 0;
+    for (let i = 0; i < this.props.options.length; i++) {
+      const label = this.props.options[i].label;
+      const { width } = ctx.measureText(label);
+      console.log(label, width);
+      if (width > maxWidth) {
+        maxWidth = width;
+      }
+    }
+
     this.setState({
       isListOpen: true,
+      optionsWidth: maxWidth + 40,
     });
   };
 
@@ -142,7 +158,7 @@ export class EuiComboBox extends Component {
     // however, we already know where to position the element
     this.optionsList.style.left = `${comboBoxBounds.left +
       window.pageXOffset}px`;
-    this.optionsList.style.width = `${comboBoxBounds.width}px`;
+    // this.optionsList.style.width = `${comboBoxBounds.width}px`;
 
     // Cache for future calls.
     this.setState({
@@ -508,8 +524,25 @@ export class EuiComboBox extends Component {
     if (this.comboBox) {
       this.comboBox.addEventListener('focusout', this.onContainerBlur);
       const comboBoxBounds = this.comboBox.getBoundingClientRect();
+
+      // // compute option list width
+      // const canvas = document.createElement('canvas');
+      // const ctx = canvas.getContext('2d');
+      // ctx.font = window.getComputedStyle(node).font;
+      //
+      // let maxWidth = 0;
+      // for (let i = 0; i < this.props.options.length; i++) {
+      //   const label = this.props.options[i].label;
+      //   const { width } = ctx.measureText(label);
+      //   console.log(label, width);
+      //   if (width > maxWidth) {
+      //     maxWidth = width;
+      //   }
+      // }
+
       this.setState({
         width: comboBoxBounds.width,
+        // optionsWidth: maxWidth,
       });
     }
   };
@@ -692,6 +725,7 @@ export class EuiComboBox extends Component {
     let optionsList;
 
     if (!noSuggestions && isListOpen) {
+      console.log(this.state.optionsWidth, width);
       const optionsListDataTestSubj = dataTestSubj
         ? `${dataTestSubj}-optionsList`
         : undefined;
@@ -715,7 +749,7 @@ export class EuiComboBox extends Component {
             updatePosition={this.updateListPosition}
             position={listPosition}
             renderOption={renderOption}
-            width={width}
+            width={this.state.optionsWidth || width}
             scrollToIndex={activeOptionIndex}
             rowHeight={rowHeight}
             data-test-subj={optionsListDataTestSubj}
