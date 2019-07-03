@@ -105,7 +105,6 @@ export class EuiComboBox extends Component {
     for (let i = 0; i < this.props.options.length; i++) {
       const label = this.props.options[i].label;
       const { width } = ctx.measureText(label);
-      console.log(label, width);
       if (width > maxWidth) {
         maxWidth = width;
       }
@@ -113,7 +112,7 @@ export class EuiComboBox extends Component {
 
     this.setState({
       isListOpen: true,
-      optionsWidth: maxWidth + 40,
+      optionsWidth: maxWidth + 40, // 40 pixels for padding
     });
   };
 
@@ -525,24 +524,8 @@ export class EuiComboBox extends Component {
       this.comboBox.addEventListener('focusout', this.onContainerBlur);
       const comboBoxBounds = this.comboBox.getBoundingClientRect();
 
-      // // compute option list width
-      // const canvas = document.createElement('canvas');
-      // const ctx = canvas.getContext('2d');
-      // ctx.font = window.getComputedStyle(node).font;
-      //
-      // let maxWidth = 0;
-      // for (let i = 0; i < this.props.options.length; i++) {
-      //   const label = this.props.options[i].label;
-      //   const { width } = ctx.measureText(label);
-      //   console.log(label, width);
-      //   if (width > maxWidth) {
-      //     maxWidth = width;
-      //   }
-      // }
-
       this.setState({
         width: comboBoxBounds.width,
-        // optionsWidth: maxWidth,
       });
     }
   };
@@ -725,7 +708,6 @@ export class EuiComboBox extends Component {
     let optionsList;
 
     if (!noSuggestions && isListOpen) {
-      console.log(this.state.optionsWidth, width);
       const optionsListDataTestSubj = dataTestSubj
         ? `${dataTestSubj}-optionsList`
         : undefined;
