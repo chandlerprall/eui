@@ -14,6 +14,7 @@ const colorToClassNameMap = {
   tint7: 'euiSuggestItem__type--tint7',
   tint8: 'euiSuggestItem__type--tint8',
   tint9: 'euiSuggestItem__type--tint9',
+  tint10: 'euiSuggestItem__type--tint10',
 };
 
 export const COLORS = Object.keys(colorToClassNameMap);
