@@ -375,16 +375,12 @@ function useColumnWidths(
   return [columnWidths, setColumnWidth];
 }
 
-function useOnResize(
-  setHasRoomForGridControls: (hasRoomForGridControls: boolean) => void,
-  isFullScreen: boolean,
-  minSizeForControls: number
-) {
+function useOnResize(setGridWidth: (newWidth: number) => void) {
   return useCallback(
     ({ width }: { width: number }) => {
-      setHasRoomForGridControls(width > minSizeForControls || isFullScreen);
+      setGridWidth(width);
     },
-    [setHasRoomForGridControls, isFullScreen, minSizeForControls]
+    [setGridWidth]
   );
 }
 
@@ -613,7 +609,7 @@ function checkOrDefaultToolBarDiplayOptions<
 const emptyArrayDefault: EuiDataGridControlColumn[] = [];
 export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [hasRoomForGridControls, setHasRoomForGridControls] = useState(true);
+  const [gridWidth, setGridWidth] = useState(IS_JEST_ENVIRONMENT ? 500 : 0);
   const [containerRef, _setContainerRef] = useState<HTMLDivElement | null>(
     null
   );
@@ -695,15 +691,8 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
   } = props;
 
   // enables/disables grid controls based on available width
-  const onResize = useOnResize(
-    nextHasRoomForGridControls => {
-      if (nextHasRoomForGridControls !== hasRoomForGridControls) {
-        setHasRoomForGridControls(nextHasRoomForGridControls);
-      }
-    },
-    isFullScreen,
-    minSizeForControls
-  );
+  const onResize = useOnResize(setGridWidth);
+  const hasRoomForGridControls = gridWidth > minSizeForControls || isFullScreen;
 
   const [columnWidths, setColumnWidth] = useColumnWidths(
     columns,
@@ -1047,6 +1036,7 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
                                       )}
                                     </EuiMutationObserver>
                                     <EuiDataGridBody
+                                      gridWidth={gridWidth}
                                       columnWidths={columnWidths}
                                       defaultColumnWidth={defaultColumnWidth}
                                       inMemoryValues={inMemoryValues}

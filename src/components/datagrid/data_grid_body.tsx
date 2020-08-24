@@ -17,7 +17,8 @@
  * under the License.
  */
 
-import React, { Fragment, FunctionComponent, useMemo } from 'react';
+import React, { Fragment, FunctionComponent, useEffect, useMemo, useRef } from 'react';
+import { VariableSizeGrid as Grid } from 'react-window';
 import { EuiCodeBlock } from '../code';
 import {
   EuiDataGridControlColumn,
@@ -41,6 +42,7 @@ import {
 } from './data_grid_schema';
 
 export interface EuiDataGridBodyProps {
+  gridWidth: number;
   columnWidths: EuiDataGridColumnWidths;
   defaultColumnWidth?: number | null;
   leadingControlColumns?: EuiDataGridControlColumn[];
@@ -93,6 +95,7 @@ const providedPopoverContents: EuiDataGridPopoverContents = {
 
 export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props => {
   const {
+    gridWidth,
     columnWidths,
     defaultColumnWidth,
     leadingControlColumns = [],
@@ -189,45 +192,75 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     [popoverContents]
   );
 
-  const rows = useMemo(() => {
-    return visibleRowIndices.map((rowIndex, i) => {
-      rowIndex = rowMap.hasOwnProperty(rowIndex) ? rowMap[rowIndex] : rowIndex;
-      return (
-        <EuiDataGridDataRow
-          key={rowIndex}
-          leadingControlColumns={leadingControlColumns}
-          trailingControlColumns={trailingControlColumns}
-          columns={columns}
-          schema={schema}
-          popoverContents={mergedPopoverContents}
-          columnWidths={columnWidths}
-          defaultColumnWidth={defaultColumnWidth}
-          focusedCellPositionInTheRow={
-            focusedCell != null && i === focusedCell[1] ? focusedCell[0] : null
-          }
-          onCellFocus={onCellFocus}
-          renderCellValue={renderCellValue}
-          rowIndex={rowIndex}
-          visibleRowIndex={i}
-          interactiveCellId={interactiveCellId}
-        />
-      );
-    });
-  }, [
-    visibleRowIndices,
-    rowMap,
-    leadingControlColumns,
-    trailingControlColumns,
-    columns,
-    schema,
-    mergedPopoverContents,
-    columnWidths,
-    defaultColumnWidth,
-    focusedCell,
-    onCellFocus,
-    renderCellValue,
-    interactiveCellId,
-  ]);
+  const Cell = ({ columnIndex, rowIndex, style }) => (
+    <div style={style}>
+      Item {rowIndex},{columnIndex}
+    </div>
+  );
 
-  return <Fragment>{rows}</Fragment>;
+  const gridRef = useRef<Grid>(null);
+  useEffect(() => {
+    gridRef.current!.resetAfterColumnIndex(0);
+  }, [columnWidths]);
+
+  const ROW_HEIGHT = 30;
+  const SCROLLBAR_HEIGHT = 15;
+  return (
+    <>
+      <Grid
+        ref={gridRef}
+        columnCount={columns.length}
+        width={gridWidth}
+        columnWidth={index =>
+          columnWidths[columns[index].id] || defaultColumnWidth || 100
+        }
+        height={ROW_HEIGHT * visibleRowIndices.length + SCROLLBAR_HEIGHT}
+        rowHeight={() => ROW_HEIGHT}
+        rowCount={visibleRowIndices.length}>
+        {Cell}
+      </Grid>
+    </>
+  );
+
+  // const rows = useMemo(() => {
+  //   return visibleRowIndices.map((rowIndex, i) => {
+  //     rowIndex = rowMap.hasOwnProperty(rowIndex) ? rowMap[rowIndex] : rowIndex;
+  //     return (
+  //       <EuiDataGridDataRow
+  //         key={rowIndex}
+  //         leadingControlColumns={leadingControlColumns}
+  //         trailingControlColumns={trailingControlColumns}
+  //         columns={columns}
+  //         schema={schema}
+  //         popoverContents={mergedPopoverContents}
+  //         columnWidths={columnWidths}
+  //         defaultColumnWidth={defaultColumnWidth}
+  //         focusedCellPositionInTheRow={
+  //           focusedCell != null && i === focusedCell[1] ? focusedCell[0] : null
+  //         }
+  //         onCellFocus={onCellFocus}
+  //         renderCellValue={renderCellValue}
+  //         rowIndex={rowIndex}
+  //         visibleRowIndex={i}
+  //         interactiveCellId={interactiveCellId}
+  //       />
+  //     );
+  //   });
+  // }, [
+  //   visibleRowIndices,
+  //   rowMap,
+  //   leadingControlColumns,
+  //   trailingControlColumns,
+  //   columns,
+  //   schema,
+  //   mergedPopoverContents,
+  //   columnWidths,
+  //   defaultColumnWidth,
+  //   focusedCell,
+  //   onCellFocus,
+  //   renderCellValue,
+  //   interactiveCellId,
+  // ]);
+  //
+  // return <Fragment>{rows}</Fragment>;
 };
