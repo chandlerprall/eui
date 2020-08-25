@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import React, { Fragment, FunctionComponent, useEffect, useMemo, useRef } from 'react';
+import React, { Fragment, FunctionComponent, Ref, useEffect, useMemo, useRef } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { EuiCodeBlock } from '../code';
 import {
@@ -60,6 +60,7 @@ export interface EuiDataGridBodyProps {
   interactiveCellId: EuiDataGridCellProps['interactiveCellId'];
   pagination?: EuiDataGridPaginationProps;
   sorting?: EuiDataGridSorting;
+  innerGridRef: Ref<HTMLDivElement>;
 }
 
 const defaultComparator: NonNullable<EuiDataGridSchemaDetector['comparator']> = (
@@ -113,6 +114,7 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     interactiveCellId,
     pagination,
     sorting,
+    innerGridRef,
   } = props;
 
   const startRow = pagination ? pagination.pageIndex * pagination.pageSize : 0;
@@ -209,12 +211,13 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     <>
       <Grid
         ref={gridRef}
+        innerRef={innerGridRef}
         columnCount={columns.length}
         width={gridWidth}
         columnWidth={index =>
           columnWidths[columns[index].id] || defaultColumnWidth || 100
         }
-        height={ROW_HEIGHT * visibleRowIndices.length + SCROLLBAR_HEIGHT}
+        height={ROW_HEIGHT * visibleRowIndices.length / 2 + SCROLLBAR_HEIGHT}
         rowHeight={() => ROW_HEIGHT}
         rowCount={visibleRowIndices.length}>
         {Cell}
