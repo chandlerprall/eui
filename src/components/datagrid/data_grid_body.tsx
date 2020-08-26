@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import React, { Fragment, FunctionComponent, Ref, useEffect, useMemo, useRef } from 'react';
+import React, { forwardRef, Fragment, FunctionComponent, Ref, useEffect, useMemo, useRef } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { EuiCodeBlock } from '../code';
 import {
@@ -29,9 +29,9 @@ import {
   EuiDataGridInMemoryValues,
   EuiDataGridPaginationProps,
   EuiDataGridSorting,
-  EuiDataGridFocusedCell,
+  EuiDataGridFocusedCell, EuiDataGridPopoverContent,
 } from './data_grid_types';
-import { EuiDataGridCellProps } from './data_grid_cell';
+import { EuiDataGridCell, EuiDataGridCellProps } from './data_grid_cell';
 import {
   EuiDataGridDataRow,
   EuiDataGridDataRowProps,
@@ -40,6 +40,9 @@ import {
   EuiDataGridSchema,
   EuiDataGridSchemaDetector,
 } from './data_grid_schema';
+import { EuiDataGridHeaderRow } from './data_grid_header_row';
+import { EuiMutationObserver } from '../observer/mutation_observer';
+import { EuiText } from '../text';
 
 export interface EuiDataGridBodyProps {
   gridWidth: number;
@@ -94,6 +97,71 @@ const providedPopoverContents: EuiDataGridPopoverContents = {
   },
 };
 
+const HEADER_ROW_HEIGHT = 37;
+
+const DefaultColumnFormatter: EuiDataGridPopoverContent = ({ children }) => {
+  return <EuiText>{children}</EuiText>;
+};
+
+const Cell = ({ columnIndex, rowIndex: _rowIndex, style, data }) => {
+  const {
+    rowMap,
+    columns,
+    schema,
+    popoverContents,
+    columnWidths,
+    defaultColumnWidth,
+    leadingControlColumns,
+    renderCellValue,
+    onCellFocus,
+    interactiveCellId,
+    focusedCell,
+  } = data;
+  const rowIndex = rowMap.hasOwnProperty(_rowIndex)
+    ? rowMap[_rowIndex]
+    : _rowIndex;
+  const column = columns[columnIndex];
+  const columnId = column.id;
+  const columnType = schema[columnId] ? schema[columnId].columnType : null;
+
+  const isExpandable =
+    columns.isExpandable !== undefined ? columns.isExpandable : true;
+  const popoverContent =
+    popoverContents[columnType as string] || DefaultColumnFormatter;
+
+  const width = columnWidths[columnId] || defaultColumnWidth;
+  const columnPosition = columnIndex + leadingControlColumns.length;
+
+  const focusedCellPositionInTheRow =
+    focusedCell != null && columnIndex === focusedCell[1]
+      ? focusedCell[0]
+      : null;
+
+  return (
+    <div
+      style={{
+        ...style,
+        top: `${parseFloat(style.top) + HEADER_ROW_HEIGHT}px`,
+      }}>
+      <EuiDataGridCell
+        // key={`${id}-${rowIndex}`}
+        rowIndex={rowIndex}
+        visibleRowIndex={_rowIndex}
+        colIndex={columnIndex}
+        columnId={columnId}
+        columnType={columnType}
+        popoverContent={popoverContent}
+        width={width || undefined}
+        renderCellValue={renderCellValue}
+        onCellFocus={onCellFocus}
+        isFocused={focusedCellPositionInTheRow === columnPosition}
+        interactiveCellId={interactiveCellId}
+        isExpandable={isExpandable}
+      />
+    </div>
+  );
+};
+
 export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props => {
   const {
     gridWidth,
@@ -115,6 +183,8 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     pagination,
     sorting,
     innerGridRef,
+    setColumnWidth,
+    headerIsInteractive,
   } = props;
 
   const startRow = pagination ? pagination.pageIndex * pagination.pageSize : 0;
@@ -194,10 +264,71 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     [popoverContents]
   );
 
-  const Cell = ({ columnIndex, rowIndex, style }) => (
-    <div style={style}>
-      Item {rowIndex},{columnIndex}
-    </div>
+  const headerRow = useMemo(
+    () => {
+      return (
+        <>
+          {/*<EuiMutationObserver*/}
+          {/*  observerOptions={{*/}
+          {/*    subtree: true,*/}
+          {/*    childList: true,*/}
+          {/*  }}*/}
+          {/*  onMutation={handleHeaderMutation}>*/}
+          {/*  {ref => (*/}
+            <EuiDataGridHeaderRow
+              // ref={ref}
+              leadingControlColumns={
+                leadingControlColumns
+              }
+              trailingControlColumns={
+                trailingControlColumns
+              }
+              columns={columns}
+              columnWidths={columnWidths}
+              defaultColumnWidth={
+                defaultColumnWidth
+              }
+              setColumnWidth={setColumnWidth}
+              schema={schema}
+              sorting={sorting}
+              headerIsInteractive={
+                headerIsInteractive
+              }
+              focusedCell={focusedCell}
+              setFocusedCell={onCellFocus}
+            />
+          {/*  )}*/}
+          {/*</EuiMutationObserver>*/}
+        </>
+      )
+    },
+    [
+      leadingControlColumns,
+      trailingControlColumns,
+      defaultColumnWidth,
+      setColumnWidth,
+      schema,
+      sorting,
+      headerIsInteractive,
+      focusedCell,
+      onCellFocus,
+      columnWidths,
+      columns,
+    ]
+  )
+
+  const InnerElement = useMemo(
+    () =>
+      forwardRef(({ children, ...rest }, ref) => {
+        return (
+          <div ref={ref} {...rest}>
+            {headerRow}
+            {children}
+          </div>
+        );
+      }
+    ),
+    [headerRow]
   );
 
   const gridRef = useRef<Grid>(null);
@@ -205,20 +336,38 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     gridRef.current!.resetAfterColumnIndex(0);
   }, [columnWidths]);
 
-  const ROW_HEIGHT = 30;
+  const ROW_HEIGHT = 34;
   const SCROLLBAR_HEIGHT = 15;
   return (
     <>
       <Grid
         ref={gridRef}
         innerRef={innerGridRef}
+        innerElementType={InnerElement}
         columnCount={columns.length}
         width={gridWidth}
         columnWidth={index =>
           columnWidths[columns[index].id] || defaultColumnWidth || 100
         }
-        height={ROW_HEIGHT * visibleRowIndices.length / 2 + SCROLLBAR_HEIGHT}
+        height={
+          ROW_HEIGHT * visibleRowIndices.length +
+          SCROLLBAR_HEIGHT +
+          HEADER_ROW_HEIGHT
+        }
         rowHeight={() => ROW_HEIGHT}
+        itemData={{
+          rowMap,
+          columns,
+          schema,
+          popoverContents: mergedPopoverContents,
+          columnWidths,
+          defaultColumnWidth,
+          leadingControlColumns,
+          renderCellValue,
+          onCellFocus,
+          interactiveCellId,
+          focusedCell,
+        }}
         rowCount={visibleRowIndices.length}>
         {Cell}
       </Grid>

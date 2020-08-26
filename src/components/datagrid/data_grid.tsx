@@ -365,13 +365,16 @@ function useColumnWidths(
     setColumnWidths(computeColumnWidths());
   }, [computeColumnWidths]);
 
-  const setColumnWidth = (columnId: string, width: number) => {
-    setColumnWidths({ ...columnWidths, [columnId]: width });
+  const setColumnWidth = useCallback(
+    (columnId: string, width: number) => {
+      setColumnWidths({ ...columnWidths, [columnId]: width });
 
-    if (onColumnResize) {
-      onColumnResize({ columnId, width });
-    }
-  };
+      if (onColumnResize) {
+        onColumnResize({ columnId, width });
+      }
+    },
+    [columnWidths, onColumnResize]
+  );
 
   return [columnWidths, setColumnWidth];
 }
@@ -1007,43 +1010,46 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
                                     id={gridId}
                                     {...wrappingDivFocusProps}
                                     {...gridAriaProps}>
-                                    {innerGridRef
-                                      ? createPortal(
-                                          <EuiMutationObserver
-                                            observerOptions={{
-                                              subtree: true,
-                                              childList: true,
-                                            }}
-                                            onMutation={handleHeaderMutation}>
-                                            {ref => (
-                                              <EuiDataGridHeaderRow
-                                                ref={ref}
-                                                leadingControlColumns={
-                                                  leadingControlColumns
-                                                }
-                                                trailingControlColumns={
-                                                  trailingControlColumns
-                                                }
-                                                columns={orderedVisibleColumns}
-                                                columnWidths={columnWidths}
-                                                defaultColumnWidth={
-                                                  defaultColumnWidth
-                                                }
-                                                setColumnWidth={setColumnWidth}
-                                                schema={mergedSchema}
-                                                sorting={sorting}
-                                                headerIsInteractive={
-                                                  headerIsInteractive
-                                                }
-                                                focusedCell={focusedCell}
-                                                setFocusedCell={setFocusedCell}
-                                              />
-                                            )}
-                                          </EuiMutationObserver>,
-                                          innerGridRef
-                                        )
-                                      : null}
+                                    {/*{innerGridRef*/}
+                                    {/*  ? createPortal(*/}
+                                    {/*      <EuiMutationObserver*/}
+                                    {/*        observerOptions={{*/}
+                                    {/*          subtree: true,*/}
+                                    {/*          childList: true,*/}
+                                    {/*        }}*/}
+                                    {/*        onMutation={handleHeaderMutation}>*/}
+                                    {/*        {ref => (*/}
+                                    {/*          <EuiDataGridHeaderRow*/}
+                                    {/*            ref={ref}*/}
+                                    {/*            leadingControlColumns={*/}
+                                    {/*              leadingControlColumns*/}
+                                    {/*            }*/}
+                                    {/*            trailingControlColumns={*/}
+                                    {/*              trailingControlColumns*/}
+                                    {/*            }*/}
+                                    {/*            columns={orderedVisibleColumns}*/}
+                                    {/*            columnWidths={columnWidths}*/}
+                                    {/*            defaultColumnWidth={*/}
+                                    {/*              defaultColumnWidth*/}
+                                    {/*            }*/}
+                                    {/*            setColumnWidth={setColumnWidth}*/}
+                                    {/*            schema={mergedSchema}*/}
+                                    {/*            sorting={sorting}*/}
+                                    {/*            headerIsInteractive={*/}
+                                    {/*              headerIsInteractive*/}
+                                    {/*            }*/}
+                                    {/*            focusedCell={focusedCell}*/}
+                                    {/*            setFocusedCell={setFocusedCell}*/}
+                                    {/*          />*/}
+                                    {/*        )}*/}
+                                    {/*      </EuiMutationObserver>,*/}
+                                    {/*      innerGridRef*/}
+                                    {/*    )*/}
+                                    {/*  : null}*/}
                                     <EuiDataGridBody
+                                      setColumnWidth={setColumnWidth}
+                                      headerIsInteractive={headerIsInteractive}
+
                                       gridWidth={gridWidth}
                                       innerGridRef={setInnerGridRef}
                                       columnWidths={columnWidths}
