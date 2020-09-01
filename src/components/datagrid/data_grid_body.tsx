@@ -17,8 +17,17 @@
  * under the License.
  */
 
-import React, { forwardRef, Fragment, FunctionComponent, Ref, useEffect, useMemo, useRef } from 'react';
-import { VariableSizeGrid as Grid } from 'react-window';
+import React, {
+  forwardRef,
+  FunctionComponent,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  GridChildComponentProps,
+  VariableSizeGrid as Grid,
+} from 'react-window';
 import { EuiCodeBlock } from '../code';
 import {
   EuiDataGridControlColumn,
@@ -29,13 +38,11 @@ import {
   EuiDataGridInMemoryValues,
   EuiDataGridPaginationProps,
   EuiDataGridSorting,
-  EuiDataGridFocusedCell, EuiDataGridPopoverContent,
+  EuiDataGridFocusedCell,
+  EuiDataGridPopoverContent,
 } from './data_grid_types';
 import { EuiDataGridCell, EuiDataGridCellProps } from './data_grid_cell';
-import {
-  EuiDataGridDataRow,
-  EuiDataGridDataRowProps,
-} from './data_grid_data_row';
+import { EuiDataGridDataRowProps } from './data_grid_data_row';
 import {
   EuiDataGridSchema,
   EuiDataGridSchemaDetector,
@@ -63,7 +70,9 @@ export interface EuiDataGridBodyProps {
   interactiveCellId: EuiDataGridCellProps['interactiveCellId'];
   pagination?: EuiDataGridPaginationProps;
   sorting?: EuiDataGridSorting;
-  innerGridRef: Ref<HTMLDivElement>;
+  setColumnWidth: (columnId: string, width: number) => void;
+  headerIsInteractive: boolean;
+  handleHeaderMutation: MutationCallback;
 }
 
 const defaultComparator: NonNullable<EuiDataGridSchemaDetector['comparator']> = (
@@ -103,7 +112,12 @@ const DefaultColumnFormatter: EuiDataGridPopoverContent = ({ children }) => {
   return <EuiText>{children}</EuiText>;
 };
 
-const Cell = ({ columnIndex, rowIndex: _rowIndex, style, data }) => {
+const Cell: FunctionComponent<GridChildComponentProps> = ({
+  columnIndex,
+  rowIndex: _rowIndex,
+  style,
+  data,
+}) => {
   const {
     rowMap,
     columns,
@@ -141,7 +155,7 @@ const Cell = ({ columnIndex, rowIndex: _rowIndex, style, data }) => {
     <div
       style={{
         ...style,
-        top: `${parseFloat(style.top) + HEADER_ROW_HEIGHT}px`,
+        top: `${parseFloat(style.top as string) + HEADER_ROW_HEIGHT}px`,
       }}>
       <EuiDataGridCell
         // key={`${id}-${rowIndex}`}
@@ -182,9 +196,9 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     interactiveCellId,
     pagination,
     sorting,
-    innerGridRef,
     setColumnWidth,
     headerIsInteractive,
+    handleHeaderMutation,
   } = props;
 
   const startRow = pagination ? pagination.pageIndex * pagination.pageSize : 0;
@@ -264,77 +278,66 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     [popoverContents]
   );
 
-  const headerRow = useMemo(
-    () => {
-      return (
-        <>
-          {/*<EuiMutationObserver*/}
-          {/*  observerOptions={{*/}
-          {/*    subtree: true,*/}
-          {/*    childList: true,*/}
-          {/*  }}*/}
-          {/*  onMutation={handleHeaderMutation}>*/}
-          {/*  {ref => (*/}
+  const headerRow = useMemo(() => {
+    return (
+      <>
+        <EuiMutationObserver
+          observerOptions={{
+            subtree: true,
+            childList: true,
+          }}
+          onMutation={handleHeaderMutation}>
+          {ref => (
             <EuiDataGridHeaderRow
-              // ref={ref}
-              leadingControlColumns={
-                leadingControlColumns
-              }
-              trailingControlColumns={
-                trailingControlColumns
-              }
+              ref={ref}
+              leadingControlColumns={leadingControlColumns}
+              trailingControlColumns={trailingControlColumns}
               columns={columns}
               columnWidths={columnWidths}
-              defaultColumnWidth={
-                defaultColumnWidth
-              }
+              defaultColumnWidth={defaultColumnWidth}
               setColumnWidth={setColumnWidth}
               schema={schema}
               sorting={sorting}
-              headerIsInteractive={
-                headerIsInteractive
-              }
+              headerIsInteractive={headerIsInteractive}
               focusedCell={focusedCell}
               setFocusedCell={onCellFocus}
             />
-          {/*  )}*/}
-          {/*</EuiMutationObserver>*/}
-        </>
-      )
-    },
-    [
-      leadingControlColumns,
-      trailingControlColumns,
-      defaultColumnWidth,
-      setColumnWidth,
-      schema,
-      sorting,
-      headerIsInteractive,
-      focusedCell,
-      onCellFocus,
-      columnWidths,
-      columns,
-    ]
-  )
+          )}
+        </EuiMutationObserver>
+      </>
+    );
+  }, [
+    leadingControlColumns,
+    trailingControlColumns,
+    defaultColumnWidth,
+    setColumnWidth,
+    schema,
+    sorting,
+    headerIsInteractive,
+    focusedCell,
+    onCellFocus,
+    columnWidths,
+    columns,
+    handleHeaderMutation,
+  ]);
 
   const InnerElement = useMemo(
     () =>
-      forwardRef(({ children, ...rest }, ref) => {
+      forwardRef<HTMLDivElement>(({ children, ...rest }, ref) => {
         return (
           <div ref={ref} {...rest}>
             {headerRow}
             {children}
           </div>
         );
-      }
-    ),
+      }),
     [headerRow]
   );
 
   const gridRef = useRef<Grid>(null);
   useEffect(() => {
     gridRef.current!.resetAfterColumnIndex(0);
-  }, [columnWidths]);
+  }, [columns, columnWidths]);
 
   const ROW_HEIGHT = 34;
   const SCROLLBAR_HEIGHT = 15;
@@ -342,7 +345,6 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     <>
       <Grid
         ref={gridRef}
-        innerRef={innerGridRef}
         innerElementType={InnerElement}
         columnCount={columns.length}
         width={gridWidth}

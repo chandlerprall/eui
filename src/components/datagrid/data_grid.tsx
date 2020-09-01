@@ -34,7 +34,6 @@ import React, {
 import classNames from 'classnames';
 import tabbable from 'tabbable';
 import { EuiI18n } from '../i18n';
-import { EuiDataGridHeaderRow } from './data_grid_header_row';
 import { CommonProps, OneOf } from '../common';
 import {
   EuiDataGridColumn,
@@ -73,10 +72,8 @@ import {
   schemaDetectors as providedSchemaDetectors,
 } from './data_grid_schema';
 import { useColumnSorting } from './column_sorting';
-import { EuiMutationObserver } from '../observer/mutation_observer';
 import { DataGridContext } from './data_grid_context';
 import { useResizeObserver } from '../observer/resize_observer/resize_observer';
-import { createPortal } from 'react-dom';
 
 // Used to short-circuit some async browser behaviour that is difficult to account for in tests
 const IS_JEST_ENVIRONMENT = global.hasOwnProperty('_isJest');
@@ -903,8 +900,6 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
   const gridId = gridIds();
   const ariaLabelledById = gridIds();
 
-  const [innerGridRef, setInnerGridRef] = useState<HTMLDivElement | null>(null);
-
   return (
     <EuiI18n
       token="euiDataGrid.ariaLabel"
@@ -1010,48 +1005,13 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
                                     id={gridId}
                                     {...wrappingDivFocusProps}
                                     {...gridAriaProps}>
-                                    {/*{innerGridRef*/}
-                                    {/*  ? createPortal(*/}
-                                    {/*      <EuiMutationObserver*/}
-                                    {/*        observerOptions={{*/}
-                                    {/*          subtree: true,*/}
-                                    {/*          childList: true,*/}
-                                    {/*        }}*/}
-                                    {/*        onMutation={handleHeaderMutation}>*/}
-                                    {/*        {ref => (*/}
-                                    {/*          <EuiDataGridHeaderRow*/}
-                                    {/*            ref={ref}*/}
-                                    {/*            leadingControlColumns={*/}
-                                    {/*              leadingControlColumns*/}
-                                    {/*            }*/}
-                                    {/*            trailingControlColumns={*/}
-                                    {/*              trailingControlColumns*/}
-                                    {/*            }*/}
-                                    {/*            columns={orderedVisibleColumns}*/}
-                                    {/*            columnWidths={columnWidths}*/}
-                                    {/*            defaultColumnWidth={*/}
-                                    {/*              defaultColumnWidth*/}
-                                    {/*            }*/}
-                                    {/*            setColumnWidth={setColumnWidth}*/}
-                                    {/*            schema={mergedSchema}*/}
-                                    {/*            sorting={sorting}*/}
-                                    {/*            headerIsInteractive={*/}
-                                    {/*              headerIsInteractive*/}
-                                    {/*            }*/}
-                                    {/*            focusedCell={focusedCell}*/}
-                                    {/*            setFocusedCell={setFocusedCell}*/}
-                                    {/*          />*/}
-                                    {/*        )}*/}
-                                    {/*      </EuiMutationObserver>,*/}
-                                    {/*      innerGridRef*/}
-                                    {/*    )*/}
-                                    {/*  : null}*/}
                                     <EuiDataGridBody
                                       setColumnWidth={setColumnWidth}
                                       headerIsInteractive={headerIsInteractive}
-
+                                      handleHeaderMutation={
+                                        handleHeaderMutation
+                                      }
                                       gridWidth={gridWidth}
-                                      innerGridRef={setInnerGridRef}
                                       columnWidths={columnWidths}
                                       defaultColumnWidth={defaultColumnWidth}
                                       inMemoryValues={inMemoryValues}
