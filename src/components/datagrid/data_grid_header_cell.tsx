@@ -54,8 +54,6 @@ export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps
     defaultColumnWidth,
     setColumnWidth,
     sorting,
-    focusedCell,
-    setFocusedCell,
     headerIsInteractive,
     className,
   } = props;
@@ -105,8 +103,10 @@ export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps
   );
 
   const headerRef = useRef<HTMLDivElement>(null);
-  const isFocused =
-    focusedCell != null && focusedCell[0] === index && focusedCell[1] === -1;
+  // todo
+  const isFocused = false;
+  // const isFocused =
+  //   focusedCell != null && focusedCell[0] === index && focusedCell[1] === -1;
   const [isCellEntered, setIsCellEntered] = useState(false);
 
   const enableInteractives = useCallback(() => {
@@ -174,23 +174,24 @@ export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps
           return false;
         } else {
           // take the focus
-          if (
-            focusedCell == null ||
-            focusedCell[0] !== index ||
-            focusedCell[1] !== -1
-          ) {
-            setFocusedCell([index, -1]);
-          } else if (headerRef.current) {
-            // this cell already had the grid's focus, so re-enable interactives
-            enableInteractives();
-            setIsCellEntered(true);
-
-            // if there is only one interactive element shift focus to the interactive element
-            const tabbables = tabbable(headerRef.current);
-            if (tabbables.length === 1) {
-              tabbables[0].focus();
-            }
-          }
+          // todo
+          // if (
+          //   focusedCell == null ||
+          //   focusedCell[0] !== index ||
+          //   focusedCell[1] !== -1
+          // ) {
+          //   setFocusedCell([index, -1]);
+          // } else if (headerRef.current) {
+          //   // this cell already had the grid's focus, so re-enable interactives
+          //   enableInteractives();
+          //   setIsCellEntered(true);
+          //
+          //   // if there is only one interactive element shift focus to the interactive element
+          //   const tabbables = tabbable(headerRef.current);
+          //   if (tabbables.length === 1) {
+          //     tabbables[0].focus();
+          //   }
+          // }
         }
       }
 
@@ -252,8 +253,6 @@ export const EuiDataGridHeaderCell: FunctionComponent<EuiDataGridHeaderCellProps
     headerIsInteractive,
     isFocused,
     setIsCellEntered,
-    focusedCell,
-    setFocusedCell,
     index,
   ]);
 

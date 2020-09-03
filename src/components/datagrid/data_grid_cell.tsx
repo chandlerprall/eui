@@ -80,8 +80,6 @@ export interface EuiDataGridCellProps {
   columnId: string;
   columnType?: string | null;
   width?: number;
-  isFocused: boolean;
-  onCellFocus: Function;
   interactiveCellId: string;
   isExpandable: boolean;
   className?: string;
@@ -100,7 +98,7 @@ interface EuiDataGridCellState {
 
 export type EuiDataGridCellValueProps = Omit<
   EuiDataGridCellProps,
-  'width' | 'isFocused' | 'interactiveCellId' | 'onCellFocus' | 'popoverContent'
+  'width' | 'interactiveCellId' | 'popoverContent'
 >;
 
 const EuiDataGridCellContent: FunctionComponent<EuiDataGridCellValueProps & {
@@ -148,11 +146,10 @@ export class EuiDataGridCell extends Component<
     return [];
   };
 
-  updateFocus = () => {
+  takeFocus = () => {
     const cell = this.cellRef.current;
-    const { isFocused } = this.props;
 
-    if (cell && isFocused) {
+    if (cell) {
       // only update focus if we are not already focused on something in this cell
       let element: Element | null = document.activeElement;
       while (element != null && element !== cell) {
@@ -170,26 +167,25 @@ export class EuiDataGridCell extends Component<
         }
       }
     }
-  };
+  }
 
   componentDidMount() {
+    console.log('mounted');
     this.unsubscribeCell = this.context.onFocusUpdate(
       [this.props.colIndex, this.props.visibleRowIndex],
-      this.updateFocus
+      this.onFocusUpdate
     );
   }
+
+  onFocusUpdate = (isFocused: boolean) => {
+    if (isFocused) {
+      this.takeFocus();
+    }
+  };
 
   componentWillUnmount() {
     if (this.unsubscribeCell) {
       this.unsubscribeCell();
-    }
-  }
-
-  componentDidUpdate(prevProps: EuiDataGridCellProps) {
-    const didFocusChange = prevProps.isFocused !== this.props.isFocused;
-
-    if (didFocusChange) {
-      this.updateFocus();
     }
   }
 
@@ -204,8 +200,6 @@ export class EuiDataGridCell extends Component<
     if (nextProps.columnType !== this.props.columnType) return true;
     if (nextProps.width !== this.props.width) return true;
     if (nextProps.renderCellValue !== this.props.renderCellValue) return true;
-    if (nextProps.onCellFocus !== this.props.onCellFocus) return true;
-    if (nextProps.isFocused !== this.props.isFocused) return true;
     if (nextProps.interactiveCellId !== this.props.interactiveCellId)
       return true;
     if (nextProps.popoverContent !== this.props.popoverContent) return true;
@@ -236,13 +230,8 @@ export class EuiDataGridCell extends Component<
     //  * if the cell children include portalled content React will bubble the focus
     //      event up, which can trigger the focus() call below, causing focus lock fighting
     if (this.cellRef.current === e.target) {
-      const {
-        onCellFocus,
-        colIndex,
-        visibleRowIndex,
-        isExpandable,
-      } = this.props;
-      onCellFocus([colIndex, visibleRowIndex]);
+      const { colIndex, visibleRowIndex, isExpandable } = this.props;
+      this.context.setFocusedCell([colIndex, visibleRowIndex]);
 
       const interactables = this.getInteractables();
       if (interactables.length === 1 && isExpandable === false) {
@@ -280,12 +269,10 @@ export class EuiDataGridCell extends Component<
   render() {
     const {
       width,
-      isFocused,
       isExpandable,
       popoverContent: PopoverContent,
       interactiveCellId,
       columnType,
-      onCellFocus,
       className,
       ...rest
     } = this.props;
@@ -516,7 +503,8 @@ export class EuiDataGridCell extends Component<
                 this.setState({ popoverIsOpen: false });
               }
             }}
-            onTrapDeactivation={this.updateFocus}>
+            // onTrapDeactivation={this.updateFocus}
+          >
             {popoverContent}
           </EuiPopover>
         </div>
@@ -526,7 +514,9 @@ export class EuiDataGridCell extends Component<
     return (
       <div
         role="gridcell"
-        tabIndex={isFocused && !this.state.disableCellTabIndex ? 0 : -1}
+        // tabIndex={isFocused && !this.state.disableCellTabIndex ? 0 : -1}
+        // @todo
+        tabIndex={!this.state.disableCellTabIndex ? 0 : -1}
         ref={this.cellRef}
         {...cellProps}
         data-test-subj="dataGridRowCell"

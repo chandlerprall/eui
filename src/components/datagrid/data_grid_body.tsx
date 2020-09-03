@@ -38,11 +38,9 @@ import {
   EuiDataGridInMemoryValues,
   EuiDataGridPaginationProps,
   EuiDataGridSorting,
-  EuiDataGridFocusedCell,
   EuiDataGridPopoverContent,
 } from './data_grid_types';
 import { EuiDataGridCell, EuiDataGridCellProps } from './data_grid_cell';
-import { EuiDataGridDataRowProps } from './data_grid_data_row';
 import {
   EuiDataGridSchema,
   EuiDataGridSchemaDetector,
@@ -61,8 +59,6 @@ export interface EuiDataGridBodyProps {
   schema: EuiDataGridSchema;
   schemaDetectors: EuiDataGridSchemaDetector[];
   popoverContents?: EuiDataGridPopoverContents;
-  focusedCell?: EuiDataGridFocusedCell;
-  onCellFocus: EuiDataGridDataRowProps['onCellFocus'];
   rowCount: number;
   renderCellValue: EuiDataGridCellProps['renderCellValue'];
   inMemory?: EuiDataGridInMemory;
@@ -125,11 +121,8 @@ const Cell: FunctionComponent<GridChildComponentProps> = ({
     popoverContents,
     columnWidths,
     defaultColumnWidth,
-    leadingControlColumns,
     renderCellValue,
-    onCellFocus,
     interactiveCellId,
-    focusedCell,
   } = data;
   const rowIndex = rowMap.hasOwnProperty(_rowIndex)
     ? rowMap[_rowIndex]
@@ -139,17 +132,12 @@ const Cell: FunctionComponent<GridChildComponentProps> = ({
   const columnType = schema[columnId] ? schema[columnId].columnType : null;
 
   const isExpandable =
-    columns.isExpandable !== undefined ? columns.isExpandable : true;
+    column.isExpandable !== undefined ? column.isExpandable : true;
+
   const popoverContent =
     popoverContents[columnType as string] || DefaultColumnFormatter;
 
   const width = columnWidths[columnId] || defaultColumnWidth;
-  const columnPosition = columnIndex + leadingControlColumns.length;
-
-  const focusedCellPositionInTheRow =
-    focusedCell != null && columnIndex === focusedCell[1]
-      ? focusedCell[0]
-      : null;
 
   return (
     <div
@@ -167,8 +155,6 @@ const Cell: FunctionComponent<GridChildComponentProps> = ({
         popoverContent={popoverContent}
         width={width || undefined}
         renderCellValue={renderCellValue}
-        onCellFocus={onCellFocus}
-        isFocused={focusedCellPositionInTheRow === columnPosition}
         interactiveCellId={interactiveCellId}
         isExpandable={isExpandable}
       />
@@ -187,8 +173,6 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     schema,
     schemaDetectors,
     popoverContents,
-    focusedCell,
-    onCellFocus,
     rowCount,
     renderCellValue,
     inMemory,
@@ -299,8 +283,6 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
               schema={schema}
               sorting={sorting}
               headerIsInteractive={headerIsInteractive}
-              focusedCell={focusedCell}
-              setFocusedCell={onCellFocus}
             />
           )}
         </EuiMutationObserver>
@@ -314,8 +296,6 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     schema,
     sorting,
     headerIsInteractive,
-    focusedCell,
-    onCellFocus,
     columnWidths,
     columns,
     handleHeaderMutation,
@@ -342,79 +322,32 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
   const ROW_HEIGHT = 34;
   const SCROLLBAR_HEIGHT = 15;
   return (
-    <>
-      <Grid
-        ref={gridRef}
-        innerElementType={InnerElement}
-        columnCount={columns.length}
-        width={gridWidth}
-        columnWidth={index =>
-          columnWidths[columns[index].id] || defaultColumnWidth || 100
-        }
-        height={
-          ROW_HEIGHT * visibleRowIndices.length +
-          SCROLLBAR_HEIGHT +
-          HEADER_ROW_HEIGHT
-        }
-        rowHeight={() => ROW_HEIGHT}
-        itemData={{
-          rowMap,
-          columns,
-          schema,
-          popoverContents: mergedPopoverContents,
-          columnWidths,
-          defaultColumnWidth,
-          leadingControlColumns,
-          renderCellValue,
-          onCellFocus,
-          interactiveCellId,
-          focusedCell,
-        }}
-        rowCount={visibleRowIndices.length}>
-        {Cell}
-      </Grid>
-    </>
+    <Grid
+      ref={gridRef}
+      innerElementType={InnerElement}
+      columnCount={columns.length}
+      width={gridWidth}
+      columnWidth={index =>
+        columnWidths[columns[index].id] || defaultColumnWidth || 100
+      }
+      height={
+        ROW_HEIGHT * visibleRowIndices.length +
+        SCROLLBAR_HEIGHT +
+        HEADER_ROW_HEIGHT
+      }
+      rowHeight={() => ROW_HEIGHT}
+      itemData={{
+        rowMap,
+        columns,
+        schema,
+        popoverContents: mergedPopoverContents,
+        columnWidths,
+        defaultColumnWidth,
+        renderCellValue,
+        interactiveCellId,
+      }}
+      rowCount={visibleRowIndices.length}>
+      {Cell}
+    </Grid>
   );
-
-  // const rows = useMemo(() => {
-  //   return visibleRowIndices.map((rowIndex, i) => {
-  //     rowIndex = rowMap.hasOwnProperty(rowIndex) ? rowMap[rowIndex] : rowIndex;
-  //     return (
-  //       <EuiDataGridDataRow
-  //         key={rowIndex}
-  //         leadingControlColumns={leadingControlColumns}
-  //         trailingControlColumns={trailingControlColumns}
-  //         columns={columns}
-  //         schema={schema}
-  //         popoverContents={mergedPopoverContents}
-  //         columnWidths={columnWidths}
-  //         defaultColumnWidth={defaultColumnWidth}
-  //         focusedCellPositionInTheRow={
-  //           focusedCell != null && i === focusedCell[1] ? focusedCell[0] : null
-  //         }
-  //         onCellFocus={onCellFocus}
-  //         renderCellValue={renderCellValue}
-  //         rowIndex={rowIndex}
-  //         visibleRowIndex={i}
-  //         interactiveCellId={interactiveCellId}
-  //       />
-  //     );
-  //   });
-  // }, [
-  //   visibleRowIndices,
-  //   rowMap,
-  //   leadingControlColumns,
-  //   trailingControlColumns,
-  //   columns,
-  //   schema,
-  //   mergedPopoverContents,
-  //   columnWidths,
-  //   defaultColumnWidth,
-  //   focusedCell,
-  //   onCellFocus,
-  //   renderCellValue,
-  //   interactiveCellId,
-  // ]);
-  //
-  // return <Fragment>{rows}</Fragment>;
 };

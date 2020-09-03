@@ -72,7 +72,7 @@ import {
   schemaDetectors as providedSchemaDetectors,
 } from './data_grid_schema';
 import { useColumnSorting } from './column_sorting';
-import { DataGridContext } from './data_grid_context';
+import { DataGridContext, DataGridContextShape } from './data_grid_context';
 import { useResizeObserver } from '../observer/resize_observer/resize_observer';
 
 // Used to short-circuit some async browser behaviour that is difficult to account for in tests
@@ -607,6 +607,18 @@ function checkOrDefaultToolBarDiplayOptions<
   }
 }
 
+function notifyCellOfFocusState(
+  cellsUpdateFocus: Map<string, Function>,
+  cell: EuiDataGridFocusedCell,
+  isFocused: boolean
+) {
+  const key = `${cell[0]}-${cell[1]}`;
+  const onFocus = cellsUpdateFocus.get(key);
+  if (onFocus) {
+    onFocus(isFocused);
+  }
+}
+
 const emptyArrayDefault: EuiDataGridControlColumn[] = [];
 export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -619,27 +631,53 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
 
   const setContainerRef = useCallback(ref => _setContainerRef(ref), []);
 
-  const [wrappingDivFocusProps, focusedCell, setFocusedCell] = useFocus(
+  const [wrappingDivFocusProps, focusedCell, _setFocusedCell] = useFocus(
     headerIsInteractive
   );
 
-  const handleHeaderChange = useCallback<(headerRow: HTMLElement) => void>(
-    headerRow => {
-      const tabbables = tabbable(headerRow);
-      const managed = headerRow.querySelectorAll('[data-euigrid-tab-managed]');
-      const hasInteractives = tabbables.length > 0 || managed.length > 0;
-      if (hasInteractives !== headerIsInteractive) {
-        setHeaderIsInteractive(hasInteractives);
+  const cellsUpdateFocus = useRef<Map<string, Function>>(new Map());
 
-        // if the focus is on the header, and the header is no longer interactive
-        // move the focus down to the first row
-        if (hasInteractives === false && focusedCell && focusedCell[1] === -1) {
-          setFocusedCell([focusedCell[0], 0]);
+  const setFocusedCell = useCallback(
+    (focusedCell: EuiDataGridFocusedCell) => {
+      _setFocusedCell(previousCell => {
+        // verify that the cell has changed
+        if (
+          previousCell != null &&
+          previousCell[0] === focusedCell[0] &&
+          previousCell[1] === focusedCell[1]
+        ) {
+          return previousCell;
         }
-      }
+
+        if (previousCell) {
+          notifyCellOfFocusState(cellsUpdateFocus.current, previousCell, false);
+        }
+        notifyCellOfFocusState(cellsUpdateFocus.current, focusedCell, true);
+        return focusedCell;
+      });
     },
-    [headerIsInteractive, setHeaderIsInteractive, focusedCell, setFocusedCell]
+    [_setFocusedCell]
   );
+
+  // todo
+  // const handleHeaderChange = useCallback<(headerRow: HTMLElement) => void>(
+  //   headerRow => {
+  //     const tabbables = tabbable(headerRow);
+  //     const managed = headerRow.querySelectorAll('[data-euigrid-tab-managed]');
+  //     const hasInteractives = tabbables.length > 0 || managed.length > 0;
+  //     if (hasInteractives !== headerIsInteractive) {
+  //       setHeaderIsInteractive(hasInteractives);
+  //
+  //       // if the focus is on the header, and the header is no longer interactive
+  //       // move the focus down to the first row
+  //       if (hasInteractives === false && focusedCell && focusedCell[1] === -1) {
+  //         setFocusedCell([focusedCell[0], 0]);
+  //       }
+  //     }
+  //   },
+  //   [headerIsInteractive, setHeaderIsInteractive, focusedCell, setFocusedCell]
+  // );
+  const handleHeaderChange = useCallback(() => {}, []);
   const handleHeaderMutation = useCallback<MutationCallback>(
     records => {
       const [{ target }] = records;
@@ -870,30 +908,34 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
     </EuiI18n>
   );
 
-  const cellsUpdateFocus = useRef<Map<string, Function>>(new Map());
-
   const focusAfterRender = useAfterRender(() => {
     if (focusedCell) {
-      const key = `${focusedCell[0]}-${focusedCell[1]}`;
-
-      if (cellsUpdateFocus.current.has(key)) {
-        cellsUpdateFocus.current.get(key)!();
-      }
+      // const key = `${focusedCell[0]}-${focusedCell[1]}`;
+      // if (cellsUpdateFocus.current.has(key)) {
+      //   cellsUpdateFocus.current.get(key)!();
+      // }
     }
   });
 
-  const datagridContext = useMemo(
-    () => ({
-      onFocusUpdate: (cell: EuiDataGridFocusedCell, updateFocus: Function) => {
-        const key = `${cell[0]}-${cell[1]}`;
-        cellsUpdateFocus.current.set(key, updateFocus);
-
-        return () => {
-          cellsUpdateFocus.current.delete(key);
-        };
-      },
-    }),
+  const onFocusUpdate = useCallback(
+    (cell: EuiDataGridFocusedCell, updateFocus: Function) => {
+      const key = `${cell[0]}-${cell[1]}`;
+      cellsUpdateFocus.current.set(key, updateFocus);
+      return () => {
+        cellsUpdateFocus.current.delete(key);
+      };
+    },
     []
+  );
+  const datagridContext = useMemo<DataGridContextShape>(
+    () => {
+      console.log('MAKING A CONTEXT YOU JERK');
+      return {
+        setFocusedCell,
+        onFocusUpdate,
+      };
+    },
+    [setFocusedCell, onFocusUpdate]
   );
 
   const gridIds = htmlIdGenerator();
@@ -1026,8 +1068,6 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
                                       schema={mergedSchema}
                                       schemaDetectors={allSchemaDetectors}
                                       popoverContents={popoverContents}
-                                      focusedCell={focusedCell}
-                                      onCellFocus={setFocusedCell}
                                       pagination={pagination}
                                       sorting={sorting}
                                       renderCellValue={renderCellValue}

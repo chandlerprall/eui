@@ -23,12 +23,10 @@ import {
   EuiDataGridColumnWidths,
   EuiDataGridColumn,
   EuiDataGridSorting,
-  EuiDataGridFocusedCell,
   EuiDataGridControlColumn,
 } from './data_grid_types';
 import { CommonProps } from '../common';
 import { EuiDataGridSchema } from './data_grid_schema';
-import { EuiDataGridDataRowProps } from './data_grid_data_row';
 import { EuiDataGridHeaderCell } from './data_grid_header_cell';
 import { EuiDataGridControlHeaderCell } from './data_grid_control_header_cell';
 
@@ -41,8 +39,6 @@ export interface EuiDataGridHeaderRowPropsSpecificProps {
   defaultColumnWidth?: number | null;
   setColumnWidth: (columnId: string, width: number) => void;
   sorting?: EuiDataGridSorting;
-  focusedCell?: EuiDataGridFocusedCell;
-  setFocusedCell: EuiDataGridDataRowProps['onCellFocus'];
   headerIsInteractive: boolean;
 }
 
@@ -64,8 +60,6 @@ const EuiDataGridHeaderRow = forwardRef<
     className,
     setColumnWidth,
     sorting,
-    focusedCell,
-    setFocusedCell,
     headerIsInteractive,
     'data-test-subj': _dataTestSubj,
     ...rest
@@ -86,8 +80,6 @@ const EuiDataGridHeaderRow = forwardRef<
           key={controlColumn.id}
           index={index}
           controlColumn={controlColumn}
-          focusedCell={focusedCell}
-          setFocusedCell={setFocusedCell}
           headerIsInteractive={headerIsInteractive}
           className="euiDataGridHeaderCell--controlColumn"
         />
@@ -98,8 +90,6 @@ const EuiDataGridHeaderRow = forwardRef<
           column={column}
           index={index + leadingControlColumns.length}
           columnWidths={columnWidths}
-          focusedCell={focusedCell}
-          setFocusedCell={setFocusedCell}
           schema={schema}
           setColumnWidth={setColumnWidth}
           defaultColumnWidth={defaultColumnWidth}
@@ -112,8 +102,6 @@ const EuiDataGridHeaderRow = forwardRef<
           key={controlColumn.id}
           index={index + leadingControlColumns.length + columns.length}
           controlColumn={controlColumn}
-          focusedCell={focusedCell}
-          setFocusedCell={setFocusedCell}
           headerIsInteractive={headerIsInteractive}
           className="euiDataGridHeaderCell--controlColumn"
         />
