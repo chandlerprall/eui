@@ -45,7 +45,8 @@ import {
   EuiDataGridSchema,
   EuiDataGridSchemaDetector,
 } from './data_grid_schema';
-import { EuiDataGridHeaderRow } from './data_grid_header_row';
+import { EuiDataGridFooterRow } from './data_grid_footer_row';
+import { EuiDataGridHeaderRow, EuiDataGridHeaderRowProps } from './data_grid_header_row';
 import { EuiMutationObserver } from '../observer/mutation_observer';
 import { EuiText } from '../text';
 
@@ -61,6 +62,7 @@ export interface EuiDataGridBodyProps {
   popoverContents?: EuiDataGridPopoverContents;
   rowCount: number;
   renderCellValue: EuiDataGridCellProps['renderCellValue'];
+  renderFooterCellValue?: EuiDataGridCellProps['renderCellValue'];
   inMemory?: EuiDataGridInMemory;
   inMemoryValues: EuiDataGridInMemoryValues;
   interactiveCellId: EuiDataGridCellProps['interactiveCellId'];
@@ -69,6 +71,8 @@ export interface EuiDataGridBodyProps {
   setColumnWidth: (columnId: string, width: number) => void;
   headerIsInteractive: boolean;
   handleHeaderMutation: MutationCallback;
+  setVisibleColumns: EuiDataGridHeaderRowProps['setVisibleColumns'];
+  switchColumnPos: EuiDataGridHeaderRowProps['switchColumnPos'];
 }
 
 const defaultComparator: NonNullable<EuiDataGridSchemaDetector['comparator']> = (
@@ -103,6 +107,7 @@ const providedPopoverContents: EuiDataGridPopoverContents = {
 };
 
 const HEADER_ROW_HEIGHT = 37;
+const FOOTER_ROW_HEIGHT = 37;
 
 const DefaultColumnFormatter: EuiDataGridPopoverContent = ({ children }) => {
   return <EuiText>{children}</EuiText>;
@@ -175,6 +180,7 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     popoverContents,
     rowCount,
     renderCellValue,
+    renderFooterCellValue,
     inMemory,
     inMemoryValues,
     interactiveCellId,
@@ -183,6 +189,8 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     setColumnWidth,
     headerIsInteractive,
     handleHeaderMutation,
+    setVisibleColumns,
+    switchColumnPos,
   } = props;
 
   const startRow = pagination ? pagination.pageIndex * pagination.pageSize : 0;
@@ -239,7 +247,7 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
           }
 
           const result = comparator(aValue, bValue, column.direction);
-          // only return if the columns are inequal, otherwise allow the next sort-by column to run
+          // only return if the columns are unequal, otherwise allow the next sort-by column to run
           if (result !== 0) return result;
         }
 
@@ -274,6 +282,8 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
           {ref => (
             <EuiDataGridHeaderRow
               ref={ref}
+              switchColumnPos={switchColumnPos}
+              setVisibleColumns={setVisibleColumns}
               leadingControlColumns={leadingControlColumns}
               trailingControlColumns={trailingControlColumns}
               columns={columns}
@@ -301,17 +311,65 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
     handleHeaderMutation,
   ]);
 
+  const footerRow = useMemo(() => {
+    if (renderFooterCellValue == null) return null;
+    return (
+      <EuiDataGridFooterRow
+        key="footerRow"
+        leadingControlColumns={leadingControlColumns}
+        trailingControlColumns={trailingControlColumns}
+        columns={columns}
+        schema={schema}
+        popoverContents={mergedPopoverContents}
+        columnWidths={columnWidths}
+        defaultColumnWidth={defaultColumnWidth}
+        // focusedCellPositionInTheRow={
+        //   focusedCell != null && visibleRowIndices.length === focusedCell[1]
+        //     ? focusedCell[0]
+        //     : null
+        // }
+        // onCellFocus={onCellFocus}
+        renderCellValue={renderFooterCellValue}
+        rowIndex={visibleRowIndices.length}
+        visibleRowIndex={visibleRowIndices.length}
+        interactiveCellId={interactiveCellId}
+      />
+    );
+  }, [
+    columnWidths,
+    columns,
+    defaultColumnWidth,
+    interactiveCellId,
+    leadingControlColumns,
+    mergedPopoverContents,
+    renderFooterCellValue,
+    schema,
+    trailingControlColumns,
+    visibleRowIndices.length,
+  ]);
+
   const InnerElement = useMemo(
     () =>
-      forwardRef<HTMLDivElement>(({ children, ...rest }, ref) => {
-        return (
-          <div ref={ref} {...rest}>
-            {headerRow}
-            {children}
-          </div>
-        );
-      }),
-    [headerRow]
+      forwardRef<HTMLDivElement, { style: { height: number } }>(
+        ({ children, style, ...rest }, ref) => {
+          return (
+            <>
+              <div
+                ref={ref}
+                style={{
+                  ...style,
+                  height: style.height + HEADER_ROW_HEIGHT,
+                }}
+                {...rest}>
+                {headerRow}
+                {children}
+              </div>
+              {footerRow}
+            </>
+          );
+        }
+      ),
+    [headerRow, footerRow]
   );
 
   const gridRef = useRef<Grid>(null);
@@ -333,7 +391,8 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
       height={
         ROW_HEIGHT * visibleRowIndices.length +
         SCROLLBAR_HEIGHT +
-        HEADER_ROW_HEIGHT
+        HEADER_ROW_HEIGHT +
+        (footerRow ? FOOTER_ROW_HEIGHT : 0)
       }
       rowHeight={() => ROW_HEIGHT}
       itemData={{
@@ -350,4 +409,78 @@ export const EuiDataGridBody: FunctionComponent<EuiDataGridBodyProps> = props =>
       {Cell}
     </Grid>
   );
+
+  // const rows = useMemo(() => {
+  //   const rowsToRender = visibleRowIndices.map((rowIndex, i) => {
+  //     rowIndex = rowMap.hasOwnProperty(rowIndex) ? rowMap[rowIndex] : rowIndex;
+  //     return (
+  //       <EuiDataGridDataRow
+  //         key={rowIndex}
+  //         leadingControlColumns={leadingControlColumns}
+  //         trailingControlColumns={trailingControlColumns}
+  //         columns={columns}
+  //         schema={schema}
+  //         popoverContents={mergedPopoverContents}
+  //         columnWidths={columnWidths}
+  //         defaultColumnWidth={defaultColumnWidth}
+  //         focusedCellPositionInTheRow={
+  //           focusedCell != null && i === focusedCell[1] ? focusedCell[0] : null
+  //         }
+  //         onCellFocus={onCellFocus}
+  //         renderCellValue={renderCellValue}
+  //         rowIndex={rowIndex}
+  //         visibleRowIndex={i}
+  //         interactiveCellId={interactiveCellId}
+  //       />
+  //     );
+  //   });
+  //
+  //   if (renderFooterCellValue) {
+  //     rowsToRender.push(
+  //       <EuiDataGridFooterRow
+  //         key="footerRow"
+  //         leadingControlColumns={leadingControlColumns}
+  //         trailingControlColumns={trailingControlColumns}
+  //         columns={columns}
+  //         schema={schema}
+  //         popoverContents={mergedPopoverContents}
+  //         columnWidths={columnWidths}
+  //         defaultColumnWidth={defaultColumnWidth}
+  //         focusedCellPositionInTheRow={
+  //           focusedCell != null && visibleRowIndices.length === focusedCell[1]
+  //             ? focusedCell[0]
+  //             : null
+  //         }
+  //         onCellFocus={onCellFocus}
+  //         renderCellValue={renderFooterCellValue}
+  //         rowIndex={visibleRowIndices.length}
+  //         visibleRowIndex={visibleRowIndices.length}
+  //         interactiveCellId={interactiveCellId}
+  //       />
+  //     );
+  //   }
+  //
+  //   return rowsToRender;
+  // }, [
+  //   leadingControlColumns,
+  //   trailingControlColumns,
+  //   defaultColumnWidth,
+  //   setColumnWidth,
+  //   schema,
+  //   sorting,
+  //   headerIsInteractive,
+  //   columnWidths,
+  //   columns,
+  //   schema,
+  //   mergedPopoverContents,
+  //   columnWidths,
+  //   defaultColumnWidth,
+  //   focusedCell,
+  //   onCellFocus,
+  //   renderCellValue,
+  //   renderFooterCellValue,
+  //   interactiveCellId,
+  // ]);
+  //
+  // return <Fragment>{rows}</Fragment>;
 };

@@ -54,6 +54,7 @@ import {
   EuiDataGridToolBarVisibilityOptions,
   EuiDataGridFocusedCell,
   EuiDataGridOnColumnResizeHandler,
+  EuiDataGridStyleFooter,
 } from './data_grid_types';
 import { EuiDataGridCellProps } from './data_grid_cell';
 import { EuiButtonEmpty } from '../button';
@@ -63,7 +64,10 @@ import { useColumnSelector } from './column_selector';
 import { useStyleSelector, startingStyles } from './style_selector';
 import { EuiTablePagination } from '../table/table_pagination';
 import { EuiFocusTrap } from '../focus_trap';
-import { EuiResizeObserver } from '../observer/resize_observer';
+import {
+  EuiResizeObserver,
+  useResizeObserver,
+} from '../observer/resize_observer';
 import { EuiDataGridInMemoryRenderer } from './data_grid_inmemory_renderer';
 import {
   useMergedSchema,
@@ -72,8 +76,8 @@ import {
   schemaDetectors as providedSchemaDetectors,
 } from './data_grid_schema';
 import { useColumnSorting } from './column_sorting';
-import { DataGridContext, DataGridContextShape } from './data_grid_context';
-import { useResizeObserver } from '../observer/resize_observer/resize_observer';
+import { EuiMutationObserver, DataGridContextShape } from '../observer/mutation_observer';
+import { DataGridContext } from './data_grid_context';
 
 // Used to short-circuit some async browser behaviour that is difficult to account for in tests
 const IS_JEST_ENVIRONMENT = global.hasOwnProperty('_isJest');
@@ -118,6 +122,12 @@ type CommonGridProps = CommonProps &
      */
     renderCellValue: EuiDataGridCellProps['renderCellValue'];
     /**
+     * A function called to render a cell's value. Behind the scenes it is treated as a React component
+     * allowing hooks, context, and other React concepts to be used. The function receives a #CellValueElement
+     * as its only argument.
+     */
+    renderFooterCellValue?: EuiDataGridCellProps['renderCellValue'];
+    /**
      * Defines the look and feel for the grid. Accepts a partial #EuiDataGridStyle object. Settings provided may be overwritten or merged with user defined preferences if toolbarVisibility density controls are available.
      */
     gridStyle?: EuiDataGridStyle;
@@ -126,7 +136,7 @@ type CommonGridProps = CommonProps &
      */
     toolbarVisibility?: boolean | EuiDataGridToolBarVisibilityOptions;
     /**
-     * A #EuiDataGridInMemory object to definite the level of high order schema-detection and sorting logic to use on your data. *Try to set when possible*. When ommited, disables all enhancements and assumes content is flat strings.
+     * A #EuiDataGridInMemory object to definite the level of high order schema-detection and sorting logic to use on your data. *Try to set when possible*. When omitted, disables all enhancements and assumes content is flat strings.
      */
     inMemory?: EuiDataGridInMemory;
     /**
@@ -134,7 +144,7 @@ type CommonGridProps = CommonProps &
      */
     pagination?: EuiDataGridPaginationProps;
     /**
-     * A #EuiDataGridSorting oject that provides the sorted columns along with their direction. Omit to disable, but you'll likely want to also turn off the user sorting controls through the `toolbarVisibility` prop.
+     * A #EuiDataGridSorting object that provides the sorted columns along with their direction. Omit to disable, but you'll likely want to also turn off the user sorting controls through the `toolbarVisibility` prop.
      */
     sorting?: EuiDataGridSorting;
     /**
@@ -163,6 +173,12 @@ const fontSizesToClassMap: { [size in EuiDataGridStyleFontSizes]: string } = {
 const headerToClassMap: { [header in EuiDataGridStyleHeader]: string } = {
   shade: 'euiDataGrid--headerShade',
   underline: 'euiDataGrid--headerUnderline',
+};
+
+const footerToClassMap: { [footer in EuiDataGridStyleFooter]: string } = {
+  shade: 'euiDataGrid--footerShade',
+  overline: 'euiDataGrid--footerOverline',
+  striped: '',
 };
 
 const rowHoverToClassMap: {
@@ -423,7 +439,7 @@ function useInMemoryValues(
     if (resetRunCount.current++ > 0) {
       // this has to delete "overflow" keys from the object instead of resetting to an empty one,
       // as the internal inmemoryrenderer component's useEffect which sets the values
-      // exectues before this outer, wrapping useEffect
+      // executes before this outer, wrapping useEffect
       const existingRowKeyCount = Object.keys(_inMemoryValues.current).length;
       for (let i = rowCount; i < existingRowKeyCount; i++) {
         delete _inMemoryValues.current[i];
@@ -459,7 +475,7 @@ function createKeyDownHandler(
 
     if (key === keys.ARROW_DOWN) {
       event.preventDefault();
-      if (y < rowCount - 1) {
+      if (props.renderFooterCellValue ? y < rowCount : y < rowCount - 1) {
         setFocusedCell([x, y + 1]);
       }
     } else if (key === keys.ARROW_LEFT) {
@@ -717,6 +733,7 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
     schemaDetectors,
     rowCount,
     renderCellValue,
+    renderFooterCellValue,
     className,
     gridStyle,
     toolbarVisibility = true,
@@ -776,7 +793,12 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
     {}
   );
 
-  const [columnSelector, orderedVisibleColumns] = useColumnSelector(
+  const [
+    columnSelector,
+    orderedVisibleColumns,
+    setVisibleColumns,
+    switchColumnPos,
+  ] = useColumnSelector(
     columns,
     columnVisibility,
     checkOrDefaultToolBarDiplayOptions(toolbarVisibility, 'showColumnSelector'),
@@ -827,10 +849,14 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
     fontSizesToClassMap[gridStyles.fontSize!],
     bordersToClassMap[gridStyles.border!],
     headerToClassMap[gridStyles.header!],
+    footerToClassMap[gridStyles.footer!],
     rowHoverToClassMap[gridStyles.rowHover!],
     cellPaddingsToClassMap[gridStyles.cellPadding!],
     {
       'euiDataGrid--stripes': gridStyles.stripes!,
+    },
+    {
+      'euiDataGrid--stickyFooter': gridStyles.footer && gridStyles.stickyFooter,
     },
     {
       'euiDataGrid--fullScreen': isFullScreen,
@@ -942,6 +968,18 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
   const gridId = gridIds();
   const ariaLabelledById = gridIds();
 
+  const commonGridProps = {
+    columns: orderedVisibleColumns,
+    columnWidths,
+    defaultColumnWidth,
+    focusedCell,
+    leadingControlColumns,
+    onCellFocus: setFocusedCell,
+    schema: mergedSchema,
+    sorting,
+    trailingControlColumns,
+  };
+
   return (
     <EuiI18n
       token="euiDataGrid.ariaLabel"
@@ -1048,6 +1086,9 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
                                     {...wrappingDivFocusProps}
                                     {...gridAriaProps}>
                                     <EuiDataGridBody
+                                      {...commonGridProps}
+                                      setVisibleColumns={setVisibleColumns}
+                                      switchColumnPos={switchColumnPos}
                                       setColumnWidth={setColumnWidth}
                                       headerIsInteractive={headerIsInteractive}
                                       handleHeaderMutation={
@@ -1058,19 +1099,13 @@ export const EuiDataGrid: FunctionComponent<EuiDataGridProps> = props => {
                                       defaultColumnWidth={defaultColumnWidth}
                                       inMemoryValues={inMemoryValues}
                                       inMemory={inMemory}
-                                      leadingControlColumns={
-                                        leadingControlColumns
-                                      }
-                                      trailingControlColumns={
-                                        trailingControlColumns
-                                      }
-                                      columns={orderedVisibleColumns}
-                                      schema={mergedSchema}
                                       schemaDetectors={allSchemaDetectors}
                                       popoverContents={popoverContents}
                                       pagination={pagination}
-                                      sorting={sorting}
                                       renderCellValue={renderCellValue}
+                                      renderFooterCellValue={
+                                        renderFooterCellValue
+                                      }
                                       rowCount={rowCount}
                                       interactiveCellId={interactiveCellId}
                                     />
